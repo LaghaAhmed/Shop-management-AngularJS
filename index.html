@@ -1,0 +1,506 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script><!-- Angular library-->
+  <script type="text/javascript" src="js/exel/sheetjs.all.min.js"></script>            <!-- Exel library-->
+  <script type="text/javascript" src="js/exel/ExcelPlus-2.4.min.js"></script>            <!-- Exel -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>  <!-- jQuery library-->
+  <script type="text/javascript" src="js/llqrcode.js"></script>               <!-- QRCode reader library -->
+  <!--<script type="text/javascript" src="js/main.js"></script>               <!-- QRCode to edit-->
+  <!--<script type="text/javascript" src="js/qrcode-generator/jquery.qrcode.js"></script>   <!--  qrcode-generator -->
+  <!-- <script type="text/javascript" src="js/qrcode-generator/qrcode.js"></script> <!-- qrcode-generator -->
+  <script type="text/javascript" src="js/qrcode-generator/jquery.qrcode.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/style.css">                <!-- css -->
+
+</head>
+
+
+<body ng-app="myApp" ng-controller="myCtrl">
+
+<form>
+    <h1> Add Product </h1>
+
+    <div id="ajoutDiv">
+        <table>
+        
+        <tr><td>Produit</td><td>Marque</td><td>Info</td><td>Prix</td><td>Quantity</td><td>Fournisseur</td><td>QRCode</td></tr>
+        <tr>
+          <td><input type="text" ng-model="p.name" id="nameInput" name="produit"></td>
+          <td><input type="text" ng-model="p.brand" id="brandInput"></td>
+          <td><input type="text" ng-model="p.info" id="infoInput"></td>
+          <td><input type="number" ng-model="p.price" id="priceInput"></td>
+          <td><input type="number" ng-model="p.quantity" id="quantityInput"></td>
+          <td><input type="text" ng-model="p.provider" id="providerInput"></td>
+          <td><input type="text" ng-model="p.qrcode" id="qrcodeInput"></td>
+        </tr>
+        <tr>
+        <td class="inpText">          
+          <ul>
+            <li ng-repeat="x in Products | filter:p.name | unique:'name'" class="Produit" id="{{x.name}}" ng-click="getMyCtrlScope().p.name=x.name" >
+              {{ x.name }}
+            </li>
+          </ul>
+        </td>
+        <td class="inpText">          
+          <ul>
+            <li ng-repeat="x in Products | filter:p.brand | unique:'brand'" class="Marque" id="{{x.brand}}" ng-click="getMyCtrlScope().p.brand=x.brand" >
+              {{ x.brand }}
+            </li>
+          </ul>
+        </td>
+        <td class="inpText">          
+          <ul>
+            <li ng-repeat="x in Products | filter:p.info | unique:'info'" class="Info" id="{{x.info}}" ng-click="getMyCtrlScope().p.info=x.info" >
+              {{ x.info }}
+            </li>
+          </ul>
+        </td>
+        <td>
+          
+        </td>
+        <td>
+          
+        </td>
+        <td class="inpText"s>          
+          <ul>
+            <li ng-repeat="x in Products | filter:p.provider | unique:'provider'" class="Provider" id="{{x.provider}}" ng-click="getMyCtrlScope().p.provider=x.provider" >
+              {{ x.provider }}
+            </li>
+          </ul>
+        </td>
+        <td>
+          <!-- QrCode Reader Begin -->
+          
+          <div class="selector" id="webcamimg" onclick="setwebcam()" align="left" >webcominggg</div>
+          <center id="mainbody">
+            <div id="outdiv"></div>
+          </center>
+          <canvas id="qr-canvas" width="600" height="400"></canvas>
+          <!-- QrCode Reader End -->
+
+        </td>
+        <td class="inpText"><input type="submit" value="ADD" name="refreshJson" ng-click="add();setwebcam();">
+        <input type="submit" value="Reread" name="reread" ng-click="setwebcam();"></td>
+        </tr>
+        
+        </table>
+    </div>
+    <br><hr><br>
+    <h1> New Products </h1>
+    <div id="showDiv">
+      <table border="1">
+            <tr><td>id</td><td>Produit</td><td>Marque</td><td>Info</td><td>Prix</td><td>Quantity</td><td>Fournisseur</td><td>date</td><td>qrcode</td><td>button</td></tr>
+            <tr ng-repeat="x in Products | filter: { status: '0' }">
+              <td>{{ x.id }}</td>
+              <td>{{ x.name }}</td>
+              <td>{{ x.brand }}</td>
+              <td>{{ x.info }}</td>
+              <td>{{ x.prixv }}</td>
+              <td>{{ x.quantity }}</td>
+              <td>{{ x.provider }}</td>
+              <td>{{ x.date }}</td>
+              <td></td>
+              <!--<td>{{ x.qrcode }}</td>-->
+              <td><input type="button" name="delete" value="delete" ng-click="delete(x.id)">
+              <input type="button" name="edit" value="edit" ng-click="getMyCtrlScope().updatedP=x;"></td>
+            </tr>
+            <tr id="updateTR">
+              <td>id</td>
+              <td><input type="text" ng-model="updatedP.name" id="nameInput" name="produit"></td>
+              <td><input type="text" ng-model="updatedP.brand" id="brandInput"></td>
+              <td><input type="text" ng-model="updatedP.info" id="infoInput"></td>
+              <td><input type="text" ng-model="updatedP.prixv" id="priceInput"></td>
+              <td><input type="text" ng-model="updatedP.quantity" id="quantityInput"></td>
+              <td><input type="text" ng-model="updatedP.provider" id="providerInput"></td>
+              <td>calandar</td>              
+              <td><input type="button" name="Confirm" value="Confirm" ng-click="update(updatedP.id)"></td>
+              <td><input type="button" name="Cancel" value="Cancel" ng-click="getMyCtrlScope().updatedP=null;" ></td>
+            </tr>
+          </table>
+        </div>        
+</form>
+<input type="button" value="Save" name="save" ng-click="save()">
+<input type="submit" value="Show JSON" ng-click="ShowJson()">
+<div id="demo"></div>
+<p>master = {{master}}</p>
+<p>Data : {{content}}</p>
+<p>Status : {{statuscode}}</p>
+<p>StatusText : {{statustext}}</p>
+<span ng-show="errorName">{{errorName}}</span>
+<span ng-show="errorUserName">{{errorUserName}}</span>
+<span ng-show="errorEmail">{{errorEmail}}</span>
+<input type="submit" value="Show All" ng-click="ShowAll()">
+
+<br><hr><br>
+<h1> Stock </h1>
+    <div id="showDiv">
+        <table border="1">
+        <tr><td>id</td><td>Produit</td><td>Marque</td><td>Info</td><td>Prix</td><td>Quantity</td><td>Fournisseur</td><td>date</td></tr>
+        <tr>
+        	<td>id</td>
+        	<td><input type="text" ng-model="sp.name" id="nameInput2" name="produit"></td>
+        	<td><input type="text" ng-model="sp.brand" id="brandInput2"></td>
+        	<td><input type="text" ng-model="sp.info" id="infoInput2"></td>
+        	<td><input type="number" ng-model="sp.price" id="priceInput2"></td>
+        	<td><input type="number" ng-model="sp.quantity" id="quantityInput2"></td>
+        	<td><input type="text" ng-model="sp.provider" id="providerInput2"></td>
+        	<td>calandar</td>
+        </tr>
+        <tr ng-repeat="x in Products | filter:sp.provider| filter: { status: '1' }">
+        	<td>{{ x.id }}</td>
+    		  <td>{{ x.name }}</td>
+     			<td>{{ x.brand }}</td>
+     			<td>{{ x.info }}</td>
+     			<td>{{ x.prixv }}</td>
+     			<td>{{ x.quantity }}</td>
+     			<td>{{ x.provider }}</td>
+     			<td>{{ x.date }}</td>
+   			<td><input type="button" name="delete" value="delete" ng-click="delete(x.id)"></td>
+   			<td><input type="button" name="edit" value="edit" ng-click="getMyCtrlScope().updatedP=x;"></td>
+  		</tr>
+  		<tr id="updateTR">
+        	<td>id</td>
+        	<td><input type="text" ng-model="updatedP.name" id="nameInput" name="produit"></td>
+        	<td><input type="text" ng-model="updatedP.brand" id="brandInput"></td>
+        	<td><input type="text" ng-model="updatedP.info" id="infoInput"></td>
+        	<td><input type="text" ng-model="updatedP.prixv" id="priceInput"></td>
+        	<td><input type="text" ng-model="updatedP.quantity" id="quantityInput"></td>
+        	<td><input type="text" ng-model="updatedP.provider" id="providerInput"></td>
+        	<td>calandar</td>
+        	<td><input type="button" name="Confirm" value="Confirm" ng-click="update(updatedP.id)"></td>
+   			<td><input type="button" name="Cancel" value="Cancel" ng-click="getMyCtrlScope().updatedP=null;" ></td>
+        </tr>
+        </table>
+    </div>
+</body>
+     
+<script>
+
+jQuery(function(){
+  jQuery('#qrcodeDiv').qrcode("http://jetienne.com");
+  })
+
+
+var app = angular.module('myApp', []);
+
+app.filter('unique', function() {
+  return function (x, targetField) {
+    if (x !== undefined) {
+	    var xl=x.length;
+	    var values = [],
+	        i, 
+	        unique,
+	        l = xl, 
+	        results = [],
+	        obj;
+	        s="";
+	        unique = true;
+	    // Iterate over all objects in the array
+	    // and collect all unique values
+	    for( i = 0; i < x.length; i++ ) {    
+	      obj = x[i];
+
+	      // check for uniqueness
+	      unique = true;
+	      if(values.length>0){	      	
+		      for( v = 0; v < values.length; v++ ){
+		        if( obj[targetField] == values[v] ){
+		          unique = false;
+		        }
+		      }
+		  }
+
+	      // If this is indeed unique, add its
+	      //   value to our values and push
+	      //   it onto the returned array
+	      if( unique ){
+	        values.push( obj[targetField] );
+	        results.push( obj );
+	      }
+	    }
+	    return results;
+    }else return;
+  };
+})
+
+app.controller('myCtrl', function($scope, $http) {
+getData(); // Load all available tasks 
+
+    function getData(){ 
+      $http.post("ajax/data.php").success(function(data){
+        $scope.Products = data;
+      });
+    };
+
+    $scope.add = function () { 
+    $scope.p.qrcode=document.getElementById("qrcodeInput").value;     
+        $http({
+            method  : 'POST',
+            url     : 'ajax/add.php',
+          data    : $scope.p, //forms user object
+          headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+        }).success(function(data) {
+            if (data.errors) {
+                alert("Erreur lors de l'ajout");
+            } else {
+                alert("Success");
+            }
+          });
+        $scope.Products.push($scope.p);
+        $scope.p=null             
+    };
+
+	$scope.delete = function (prodID) {
+	    if(confirm("Are you sure to delete this line?")){
+	    $http.post("ajax/delete.php?prodID="+prodID).success(function(data){
+	        getData();
+	      });
+	    }
+	};
+
+	$scope.update = function () {      
+        $http({
+            method  : 'POST',
+            url     : 'ajax/update.php',
+          data    : $scope.updatedP, //forms user object
+          headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+        }).success(function(data) {
+            if (data.errors) {
+                alert("Erreur lors de l'ajout");
+            } else {
+                alert("Success");
+            }
+          });
+        getData();
+        $scope.updatedP=null             
+    };
+
+    $scope.getMyCtrlScope = function() {
+          return $scope;   
+    }
+	  $scope.edit = function(x) {
+		      $scope.updatedp=angular.copy($scope.x);		
+          return $scope;   
+    }
+
+    $scope.save = function() {//save to exel
+        $scope.ep=new ExcelPlus();
+          $scope.ep.openRemote("list.xlsx", function(passed) {
+        if (!passed) alert("Error: impossible to load the remote file");
+        else   {
+          try{$scope.ep.writeNextRow(["aaaa", "75001", "France"]).Save("test.xlsx");}
+          catch(x){console.log("okok"+x);}
+          alert("okok");
+        }
+      });
+    }
+    
+    $scope.ShowJson = function() {
+      $scope.master = angular.copy($scope.p);
+        //$scope.p=null
+    };
+
+
+// QRCODE reader Copyright 2011 Lazar Laszlo
+// http://www.webqr.com
+
+var gCtx = null;
+var gCanvas = null;
+var c=0;
+var stype=0;
+var gUM=false;
+var webkit=false;
+var moz=false;
+var v=null;
+
+var vidhtml = '<video id="v" autoplay></video>';
+
+function initCanvas(w,h)
+{
+    gCanvas = document.getElementById("qr-canvas");
+    gCanvas.style.width = w + "px";
+    gCanvas.style.height = h + "px";
+    gCanvas.width = w;
+    gCanvas.height = h;
+    gCtx = gCanvas.getContext("2d");
+    gCtx.clearRect(0, 0, w, h);
+}
+
+
+function captureToCanvas() {
+    if(stype!=1)
+        return;
+    if(gUM)
+    {
+        try{
+            gCtx.drawImage(v,0,0);
+            try{
+                qrcode.decode();
+            }
+            catch(e){       
+                console.log(e);
+                setTimeout(captureToCanvas, 500);
+            };
+        }
+        catch(e){       
+                console.log(e);
+                setTimeout(captureToCanvas, 500);
+        };
+    }
+}
+
+  /*$scope.read = function(a){
+    
+      //$scope.p.qrcode=a+"";
+      if(a!= $scope.old){
+          $scope.old=a;
+          //$scope.qrcodeInput=a+"";
+          $scope.qrcode=a+"";
+          //document.getElementById("qrcodeInput").value=a+"";  
+          var dataString = { qrcode : a };
+
+          $http({
+                  method  : 'POST',
+                  url     : 'ajax/getproduct.php',
+                  data    : dataString,
+                  headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+          }).success(function(data) {  
+                  $scope.sellList.push(data[0]);                                 
+          });
+      }else{alert("Already done !!");}
+      $scope.setwebcam();        
+  };*/
+
+function read(a)
+{
+    //$scope.p.qrcode=a+"";
+    document.getElementById("qrcodeInput").value=a+"";
+    //setwebcam();
+} 
+
+function isCanvasSupported(){
+  var elem = document.createElement('canvas');
+  return !!(elem.getContext && elem.getContext('2d'));
+}
+
+function success(stream) {
+    if(webkit)
+        v.src = window.webkitURL.createObjectURL(stream);
+    else
+    if(moz)
+    {
+        v.mozSrcObject = stream;
+        v.play();
+    }
+    else
+        v.src = stream;
+        gUM=true;
+        setTimeout(captureToCanvas, 500);
+}
+    
+function error(error) {
+    gUM=false;
+    return;
+}
+
+function load_qrcode_from_main_js()
+{    
+  if(isCanvasSupported() && window.File && window.FileReader)
+  {
+    initCanvas(600, 400);
+    qrcode.callback = read;
+    document.getElementById("mainbody").style.display="inline";
+    $scope.setwebcam();
+  }
+  else
+  {
+    document.getElementById("mainbody").style.display="inline";
+    document.getElementById("mainbody").innerHTML='<p id="mp1">QR code scanner for HTML5 capable browsers</p><br>'+
+        '<br><p id="mp2">sorry your browser is not supported</p><br><br>'+
+        '<p id="mp1">try <a href="http://www.mozilla.com/firefox"><img src="firefox.png"/></a> or <a href="http://chrome.google.com"><img src="chrome_logo.gif"/></a> or <a href="http://www.opera.com"><img src="Opera-logo.png"/></a></p>';
+  }
+
+}
+$scope.setwebcam = function() {
+    document.getElementById("qrcodeInput").value="";
+    if(stype==1)
+    {
+        setTimeout(captureToCanvas, 500);    
+        return;
+    }
+    var n=navigator;
+    document.getElementById("outdiv").innerHTML = vidhtml;
+    v=document.getElementById("v");
+
+    if(n.getUserMedia)
+        n.getUserMedia({video: true, audio: false}, success, error);
+    else
+    if(n.webkitGetUserMedia)
+    {
+        webkit=true;
+        n.webkitGetUserMedia({video: true, audio: false}, success, error);
+    }
+    else
+    if(n.mozGetUserMedia)
+    {
+        moz=true;
+        n.mozGetUserMedia({video: true, audio: false}, success, error);
+    }
+
+    document.getElementById("webcamimg").src="webcam.png";
+    //document.getElementById("qrimg").style.opacity=0.2;
+    //document.getElementById("webcamimg").style.opacity=1.0;
+
+    stype=1;
+    setTimeout(captureToCanvas, 500);
+}
+load_qrcode_from_main_js();
+});
+
+/*
+  $scope.toggleStatus = function(item, status, task) {
+    if(status=='2'){status='0';}else{status='2';}
+      $http.post("ajax/updateTask.php?taskID="+item+"&status="+status).success(function(data){
+        getData();
+      });
+  };
+    
+    $scope.jsonn();
+  function Choose(val){
+    console.log(val.className);
+    if(val.className=="Produit ng-binding ng-scope"){elem = document.getElementById("ProduitInput");}
+    if(val.className=="Marque ng-binding ng-scope"){elem = document.getElementById("MarqueInput");} 
+    if(val.className=="Info ng-binding ng-scope"){elem = document.getElementById("InfoInput");} 
+    if(val.className=="Provider ng-binding ng-scope"){elem = document.getElementById("ProviderInput");} 
+      elem.value = (val.id);
+  }*/
+/*var dataObj = {
+        name : $scope.nameInput,
+        brand : $scope.brandInput,
+        info : $scope.infoInput,
+        price : $scope.priceInput,
+        quantity : $scope.quantityInput,
+        provider : $scope.providerInput
+    };  
+    var res = $http.post('add.php', dataObj);
+    res.success(function(data, status, headers, config) {
+      alert("add new row OK");//$scope.message = data;
+          $scope.content = data;
+          $scope.statuscode = status;
+        $scope.statustext = headers;            
+    });
+    res.error(function(data, status, headers, config) {
+      alert( "failure message: " + JSON.stringify({data: data}));
+    }); 
+      //alert($scope.ProduitInput+"");
+      //$http.post("add.php?produit="+$scope.ProduitInput+"&marque="+$scope.MarqueInput+"&info="+$scope.InfoInput+"&price="+$scope.PriceInput+"&quantite="+$scope.QuantityInput+"&provider="+$scope.ProviderInput).success(function(data){
+        //getTask();*/
+    //});
+        // Posting data to php file
+
+  
+</script>
+
+</html>

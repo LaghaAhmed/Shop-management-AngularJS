@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>basic example</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>	<!-- jQuery library-->
+<script type="text/javascript" src="js/qrcode-generator/jquery.qrcode.js"></script>   <!--  qrcode-generator -->
+<script type="text/javascript" src="js/qrcode-generator/qrcode.js"></script> <!-- qrcode-generator -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script><!-- Angular library-->
+<script type="text/javascript" src="js/pdf-maker/jspdf.min.js"></script><!-- jspdf (html->pdf) -->
+<script src='js/pdf-maker/jspdf.debug.js'></script>
+<script src='js/pdf-maker/html2pdf.js'></script>
+<style type="text/css">
+	canvas{
+		padding-left: 5px;
+		padding-right: 5px;
+		margin-bottom: -5px;
+	}
+	.titleTop{
+		float: left;
+		text-align: center;	
+		font-size: 11px;
+		width: 70px;
+		margin-top: 5px;		
+	}
+	.titleBottom{
+		float: left;
+		text-align: center;	
+		font-size: 11px;
+		width: 70px;
+	}
+	  <style type="text/css">
+    #output{
+      display: none;
+    }
+  </style>
+
+</style>
+
+</head>
+<body ng-app="myApp" ng-controller="myCtrl">
+<button id="cmd">generate PDF</button>
+<div id="output"></div>
+
+<div id="editor"></div><!-- editor obligatoir pour generer le pdf -->
+
+
+<script>
+	var app = angular.module('myApp', []);
+	app.controller('myCtrl', function($scope, $http) { 		
+
+		getData();
+		var output = document.createElement("output");
+		var qrcodes = document.createElement("qrcodes");	
+		function getData(){ 
+
+		    $http.post("ajax/data.php").success(function(data){
+
+		        $scope.Products = data;
+		        var l= $scope.Products.length;
+		        var nbLine= (l-(l%8))/8+1;
+		        var f;//nbr element in line i
+		        var obj;
+		        for( i = 0; i < nbLine; i++ ) { 
+		        	f=8;
+		        	if(i==nbLine-1)f=l%8;
+		        	
+		        	for( j = 0; j < f; j++ ) {    
+		      			obj = $scope.Products[i*8+j];
+		      			$('#output').append("<span class='titleTop'>"+obj.qrcode+"</span>");
+		      		};
+
+		      		$('#output').append("<br>")	;		      		
+					for( j = 0; j < f; j++ ) {    
+		      			obj = $scope.Products[i*8+j];			      							      		   						    	
+					    $('#output').qrcode(obj.qrcode);				    						    			
+				  	};
+
+				  	$('#output').append("<br>")	;
+
+				  	for( j = 0; j < f; j++ ) {    
+		      			obj = $scope.Products[i*8+j];
+		      			$('#output').append("<span class='titleBottom'>Prix:"+obj.prixv+"</span>");
+		      		};
+
+		      		$('#output').append("<br>")	;
+
+		      	};
+		    });
+		};
+	});
+
+	
+
+	//$(document).ready(function() {
+	var doc = new jsPDF();
+	var specialElementHandlers = {
+	    '#editor': function (element, renderer) {
+	        return true;
+	    }
+	};
+
+	/*$('#cmd').click(function () {
+	    doc.fromHTML($('#output').html(), 15, 15, {
+	        'width': 170,
+	            'elementHandlers': specialElementHandlers
+	    });
+	    var string = doc.output('datauristring');
+
+		$('iframe').attr('src', string);
+	    //doc.save('sample-file.pdf');
+	});*/
+
+	$('#cmd').click(function () {
+
+    var pdf = new jsPDF('p', 'pt', 'letter');
+        var canvas = pdf.canvas;
+        canvas.height = 731;
+        canvas.width=72 * 8.5;;
+        // var width = 400;
+        html2pdf(document.getElementById("output"), pdf, function(pdf) {
+                var iframe = document.createElement('iframe');
+                iframe.setAttribute('style','position:absolute;right:0; top:0; bottom:0; height:100%; width:500px');
+                document.body.appendChild(iframe);
+                iframe.src = pdf.output('datauristring');
+		});
+
+	});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,312 @@
+
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <meta charset="UTF-8">
+  <title>Vendeur</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script><!-- Angular library-->
+  <script type="text/javascript" src="js/exel/sheetjs.all.min.js"></script>            <!-- Exel library-->
+  <script type="text/javascript" src="js/exel/ExcelPlus-2.4.min.js"></script>            <!-- Exel -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>  <!-- jQuery library-->
+  <script type="text/javascript" src="js/llqrcode.js"></script>               <!-- QRCode library-->
+  <!--<script type="text/javascript" src="js/main.js"></script>               <!-- QRCode to edit-->
+  <link rel="stylesheet" type="text/css" href="css/style.css">                <!-- css -->
+  </head>
+  <body>
+
+  <div ng-app="myApp" ng-controller="myCtrl">
+  <form>
+      <h1> Sell </h1>
+        <div id="showDiv">
+          
+            <table border="1" style="display: block;width: 50%">
+              <tr><td>id</td><td>Produit</td><td>Marque</td><td>Info</td><td>Prix</td><td>Quantity</td><td>Prix de vente</td><td>sell</td></tr>
+              <tr ng-repeat="x in sellList ">
+                <td>{{ x.id }}</td>
+                <td>{{ x.name }}</td>
+                <td>{{ x.brand }}</td>
+                <td>{{ x.info }}</td>
+                <td>{{ x.prixv }}</td>
+                <td><input type="text" ng-model="qte" id="qteInput"></td>
+                <td><input type="text" ng-model="sellP" id="sellPInput"></td>
+
+                <td><input type="button" name="sell" value="Vendue" ng-click="sell(x.id)"><input type="button" name="delete" value="delete" ng-click="delete(x)"></td>
+              </tr>           
+            </table>  
+            <div style="float:right;display: block;width: 60%;vertical-align: top;">           
+                 <!-- QrCode Reader Begin -->        
+            <div class="selector" id="webcamimg" onclick="setwebcam()" align="left" >webcoming</div>
+            <div id="mainbody"><div id="outdiv"></div></div>
+            <canvas id="qr-canvas" width="600" height="400"></canvas>
+                <!-- QrCode Reader End -->
+            <input type="text" ng-model="qrcodeInput" id="qrcodeInput" name="qrcodeInput" ng-value="qrcode">
+            </div>
+        </div>    
+      <input type="button" value="doqrcode" name="doqrcode" ng-click="doqrcode()"> <!--test remplir le qrcode input -->
+      <input type="button" value="add1234" name="add1234" ng-click="add1234()">  <!--test ajouter l'article 1234 -->
+      <input type="button" value="add1598" name="add1598" ng-click="add1598()">  <!--test ajouter l'article 1598 -->
+      <input type="button" value="Sell All" name="SellAll" ng-click="SellAll()"> <!-- vendre tous les articles -->
+      <input type="button" value="Clear" name="Clear" ng-click="Clear()"> <!-- vider la list -->
+      <input type="button" value="Print" name="Print" ng-click="Print()"> <!-- imprimer -->   
+  </form>
+
+  <div id="demo"></div>
+  <script>
+  
+
+  var app = angular.module('myApp', []);
+
+  app.controller('myCtrl', function($scope, $http) {
+  getData(); 
+  $scope.sellList=[];
+  $scope.old="nope";
+
+      function getData(){ 
+      $http.post("ajax/data.php").success(function(data){
+          $scope.Products = data;
+         });
+      };
+
+
+      $scope.getMyCtrlScope = function() {
+             return $scope;   
+      }
+      
+      $scope.doqrcode = function() {
+        $scope.qrcode = 1234+"";
+          //$scope.p=null
+      };
+
+      $scope.Clear = function() {
+        $scope.sellList={};
+      };
+
+      $scope.add1234 = function() {
+        var dataString = { qrcode : 'ht-media1555' };
+
+          $http({
+                  method  : 'POST',
+                  url     : 'ajax/getproduct.php',
+                  data    : dataString,
+                  headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+          }).success(function(data) {  
+                  $scope.sellList.push(data[0]);                                 
+          });
+      };
+
+      $scope.add1598 = function() {
+        var dataString = { qrcode : 'HT-MC47T1234' };
+
+          $http({
+                  method  : 'POST',
+                  url     : 'ajax/getproduct.php',
+                  data    : dataString,
+                  headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+          }).success(function(data) {  
+                  $scope.sellList.push(data[0]);                                 
+          });
+      };
+
+      $scope.delete = function (prodID) {
+          if(confirm("Are you sure to delete this line?")){
+
+              $scope.sellList.splice($scope.sellList.indexOf(prodID), 1);
+          }
+      };
+
+      $scope.sell = function (prodID) {    
+        var dataString = { id : prodID };  
+        $http({
+            method  : 'POST',
+            url     : 'ajax/sellone.php',
+            data    : dataString,
+          headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+        }).success(function(data) {
+            if (data.errors) {
+                alert("Erreur lors de l'ajout");
+            } else {
+                //alert("Success");
+            }
+          });        
+        $scope.sellList.splice($scope.sellList.indexOf(prodID), 1);             
+      };
+
+      $scope.SellAll = function () {   
+
+        $http({
+            method  : 'POST',
+            url     : 'ajax/sellall.php',
+            data    :  {'selllist':$scope.sellList},
+          headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+        }).success(function(data) {
+            if (data.errors) {
+                alert("Erreur lors de l'ajout");
+            } else {
+                //alert("Success");
+            }
+          });        
+        $scope.sellList={};       
+      };
+
+  var gCtx = null;
+  var gCanvas = null;
+  var c=0;
+  var stype=0;
+  var gUM=false;
+  var webkit=false;
+  var moz=false;
+  var v=null;
+
+  var vidhtml = '<video id="v" autoplay></video>';
+
+  function initCanvas(w,h)
+  {
+      gCanvas = document.getElementById("qr-canvas");
+      gCanvas.style.width = w + "px";
+      gCanvas.style.height = h + "px";
+      gCanvas.width = w;
+      gCanvas.height = h;
+      gCtx = gCanvas.getContext("2d");
+      gCtx.clearRect(0, 0, w, h);
+  }
+
+
+  function captureToCanvas() {
+      if(stype!=1)
+          return;
+      if(gUM)
+      {
+          try{
+              gCtx.drawImage(v,0,0);
+              try{
+                  qrcode.decode();
+              }
+              catch(e){       
+                  console.log(e);
+                  setTimeout(captureToCanvas, 500);
+              };
+          }
+          catch(e){       
+                  console.log(e);
+                  setTimeout(captureToCanvas, 500);
+          };
+      }
+  }
+  /*$scope.read = function(a) {
+   alert("okkkk");
+    $scope.qrcodeValue=12345;
+    //document.getElementById("qrcodeInput").value=a+"";
+    
+    //setwebcam();
+} */
+  $scope.read = function(a){
+    
+      //$scope.p.qrcode=a+"";
+      if(a!= $scope.old){
+          $scope.old=a;
+          //$scope.qrcodeInput=a+"";
+          $scope.qrcode=a+"";
+          //document.getElementById("qrcodeInput").value=a+"";  
+          var dataString = { qrcode : a };
+
+          $http({
+                  method  : 'POST',
+                  url     : 'ajax/getproduct.php',
+                  data    : dataString,
+                  headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+          }).success(function(data) {  
+                  $scope.sellList.push(data[0]);                                 
+          });
+      }else{alert("Already done !!");}
+      $scope.setwebcam();  
+      //load_qrcode_from_main_js();  
+  };
+
+  /*function findByQRCode(source, qrcode) {
+    for (var i = 0; i < source.length; i++) {
+      if (source[i].qrcode === qrcode) {
+        return source[i];
+      }
+    }
+    throw "Couldn't find object with qrcode: " + qrcode;
+  }*/
+
+  function isCanvasSupported(){
+    var elem = document.createElement('canvas');
+    return !!(elem.getContext && elem.getContext('2d'));
+  }
+  function success(stream) {
+      if(webkit)
+          v.src = window.webkitURL.createObjectURL(stream);
+      else
+      if(moz)
+      {
+          v.mozSrcObject = stream;
+          v.play();
+      }
+      else
+          v.src = stream;
+      gUM=true;
+      setTimeout(captureToCanvas, 500);
+  }
+      
+  function error(error) {
+      gUM=false;
+      return;
+  }
+
+  function load_qrcode_from_main_js()
+  {    
+    if(isCanvasSupported() && window.File && window.FileReader)
+    {
+      initCanvas(600, 400);
+      qrcode.callback = $scope.read;
+      document.getElementById("mainbody").style.display="inline";
+          $scope.setwebcam();
+    }
+    else
+    {
+      document.getElementById("mainbody").style.display="inline";
+      document.getElementById("mainbody").innerHTML='<p id="mp1">QR code scanner for HTML5 capable browsers</p><br>'+
+          '<br><p id="mp2">sorry your browser is not supported</p><br><br>'+
+          '<p id="mp1">try <a href="http://www.mozilla.com/firefox"><img src="firefox.png"/></a> or <a href="http://chrome.google.com"><img src="chrome_logo.gif"/></a> or <a href="http://www.opera.com"><img src="Opera-logo.png"/></a></p>';
+    }
+  }
+  $scope.setwebcam = function() {    
+      if(stype==1)
+      {
+          setTimeout(captureToCanvas, 500);    
+          return;
+      }
+      var n=navigator;
+      document.getElementById("outdiv").innerHTML = vidhtml;
+      v=document.getElementById("v");
+
+      if(n.getUserMedia)
+          n.getUserMedia({video: true, audio: false}, success, error);
+      else
+      if(n.webkitGetUserMedia)
+      {
+          webkit=true;
+          n.webkitGetUserMedia({video: true, audio: false}, success, error);
+      }
+      else
+      if(n.mozGetUserMedia)
+      {
+          moz=true;
+          n.mozGetUserMedia({video: true, audio: false}, success, error);
+      }
+
+      document.getElementById("webcamimg").src="webcam.png";
+      //document.getElementById("qrimg").style.opacity=0.2;
+      //document.getElementById("webcamimg").style.opacity=1.0;
+
+      stype=1;
+      setTimeout(captureToCanvas, 500);
+  };
+  load_qrcode_from_main_js();
+  });
+  </script>
+
+  </body>
+  </html>

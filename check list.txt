@@ -1,0 +1,12 @@
+**************** page add ********************
+qrcode read passing variable from doc.getelementbyid to $scope.p
+qrcode si double
+
+
+***************** page alldata edit**************
+edit sur le tr selectionné
+delete par group
+multi search
+
+***************** page stat ******************
+stat

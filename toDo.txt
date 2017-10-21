@@ -1,0 +1,22 @@
+//To do
+
+
+*IHM vendre ( Read QRCode )
+*IHM generer QRCode ( new products )
+*IHM inventaire ( ajout + delete )
+
+//Doing
+
+*IHM ajout ( Read QRCode + add to exel )
+
+//Done
+
+-qrcode api reader
+-qrcode api generator
++exel to json
+-text to exel
+-pdf creator
+-interface ajout
++*IHM ajout ( recherche )
+
+(-)Debut (+)Presque finie (*)Complet

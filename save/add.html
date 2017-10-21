@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+<title>Excel to JSON Demo</title>
+<script type="text/javascript" src="js/sheetjs.all.min.js"></script>
+<script type="text/javascript" src="js/ExcelPlus-2.4.min.js"></script>
+</head>
+<body>
+
+<script>
+
+/**
+var ep=new ExcelPlus();
+// We're going to do several tasks in one line of code:
+// 1) create an Excel with one sheet called "Book1"
+// 2) write some data from an array to the new-created sheet
+// 3) create a new sheet called "Book2"
+// 4) write "A1" in cell "A1" of the new-created sheet
+// 5) write the today date in D1 of the "Book1" sheet
+// 6) save it on the user computer (this last step only works with IE10+ and modern browsers)
+ep.createFile("Book1")
+  .write({ "content":[ ["A1","B1","C1"] ] })
+  .createSheet("Book2")
+  .write({ "cell":"A1", "content":"A1" })
+  .write({ "sheet":"Book1", "cell":"D1", "content":new Date() })
+  .saveAs("demo.xlsx");
+
+  var ep=new ExcelPlus();
+// we call openLocal() and when the file is loaded then we want to display its content
+// openLocal() will use the FileAPI if exists, otherwise it will use a Flash object
+ep.openLocal({
+  "flashPath":"/js/excelplus/2.4/swfobject/",
+  "labelButton":"Open an Excel file"
+},function() {
+  // show the content of the first sheet
+  console.table(ep.selectSheet(1).readAll())
+})
+
+**/
+
+var ep=new ExcelPlus();
+// we call openRemote()
+ep.openRemote("test.xlsx", function(passed) {
+  if (!passed) alert("Error: impossible to load the remote file");
+  else   {
+    ep.write({cell:"C1", content:"C1"}).writeCell("B1","B1").write({cell:"A2",content:"A2"}).writeNextRow(["Paris 1", "75001", "France"]).saveAs("test2.xlsx");
+    console.table(ep.selectSheet(1).readAll())//alert(ep.selectSheet(1).readAll()) // show the content of the first sheet
+    alert("Error: impossible to load the remote file");
+  }
+})
+
+/**
+var ep=new ExcelPlus();
+ep.createFile().write({cell:"A1", content:"A1"}).writeCell("B1","B1").write({cell:"A2",content:"A2"});
+console.table(ep.read("A1:B3"));
+**/
+</script>
+</body>
+</html>

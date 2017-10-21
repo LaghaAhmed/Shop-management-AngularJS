@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script type="text/javascript" src="js/sheetjs.all.min.js"></script>
+<script type="text/javascript" src="js/ExcelPlus-2.4.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<style type="text/css">
+  .inpText{vertical-align:top;}
+</style>
+<body>
+
+<div ng-app="myApp" ng-controller="myCtrl">
+<form>
+<table>
+<tr><td>Produit</td><td>Marque</td><td>Info</td><td>Prix</td><td>Qantity</td><td>Fournisseur</td></tr>
+<tr>
+<td class="inpText">
+  <input type="text" ng-model="p.name" id="nameInput" name="produit">
+  <ul>
+    <li ng-repeat="x in Products | filter:nameInput | unique:'name'" class="Produit" id="{{x.name}}" ng-click="getMyCtrlScope().p.name=x.name" >
+      {{ x.name }}
+    </li>
+  </ul>
+</td>
+<td class="inpText">
+  <input type="text" ng-model="p.brand" id="brandInput">
+  <ul>
+    <li ng-repeat="x in Products | filter:brandInput | unique:'brand'" class="Marque" id="{{x.brand}}" ng-click="getMyCtrlScope().p.brand=x.brand" >
+      {{ x.brand }}
+    </li>
+  </ul>
+</td>
+<td class="inpText">
+  <input type="text" ng-model="p.info" id="infoInput">
+  <ul>
+    <li ng-repeat="x in Products | filter:infoInput | unique:'info'" class="Info" id="{{x.info}}" ng-click="getMyCtrlScope().p.info=x.info" >
+      {{ x.info }}
+    </li>
+  </ul>
+</td>
+<td class="inpText">
+  <input type="number" ng-model="p.price" id="priceInput">
+</td>
+<td class="inpText">
+  <input type="number" ng-model="p.quantity" id="quantityInput">
+</td>
+<td class="inpText"s>
+  <input type="text" ng-model="p.provider" id="providerInput">
+  <ul>
+    <li ng-repeat="x in Products | filter:ProviderInput | unique:'provider'" class="Provider" id="{{x.provider}}" ng-click="getMyCtrlScope().p.provider=x.provider" >
+      {{ x.provider }}
+    </li>
+  </ul>
+</td>
+<td class="inpText"><input type="submit" value="ADD" name="refreshJson" ng-click="addTask()"></td>
+</tr>
+</table>
+
+
+<input type="button" value="Save" name="save" ng-click="save()">
+<input type="submit" value="loadDoc" name="loadDoc" ng-click="jsonn()">
+<div id="demo"></div>
+<p>master = {{master}}</p>
+<p>Data : {{content}}</p>
+<p>Status : {{statuscode}}</p>
+<p>StatusText : {{statustext}}</p>
+<span ng-show="errorName">{{errorName}}</span>
+<span ng-show="errorUserName">{{errorUserName}}</span>
+<span ng-show="errorEmail">{{errorEmail}}</span>
+</div>
+
+        
+<script>
+
+var app = angular.module('myApp', []);
+
+app.filter('unique', function() {
+  return function (arr, targetField) {
+
+    var values = [],
+        i, 
+        unique,
+        l = arr.length, 
+        results = [],
+        obj;
+
+    // Iterate over all objects in the array
+    // and collect all unique values
+    for( i = 0; i < arr.length; i++ ) {
+
+      obj = arr[i];
+
+      // check for uniqueness
+      unique = true;
+      for( v = 0; v < values.length; v++ ){
+        if( obj[targetField] == values[v] ){
+          unique = false;
+        }
+      }
+
+      // If this is indeed unique, add its
+      //   value to our values and push
+      //   it onto the returned array
+      if( unique ){
+        values.push( obj[targetField] );
+        results.push( obj );
+      }
+
+    }
+    return results;
+  };
+})
+
+app.controller('myCtrl', function($scope, $http) {
+getTask(); // Load all available tasks 
+
+    function getTask(){ 
+    $http.post("data.php").success(function(data){
+        $scope.Products = data;
+       });
+    };
+
+    $scope.addTask = function () {      
+        $http({
+            method  : 'POST',
+            url     : 'add.php',
+          data    : $scope.p, //forms user object
+          headers : {'Content-Type': 'application/x-www-form-urlencoded'} 
+        }).success(function(data) {
+            if (data.errors) {
+                alert("Erreur lors de l'ajout");
+            } else {
+                alert("Success");
+            }
+          });
+        $scope.Products.push($scope.p);
+        $scope.p=null       
+    };
+
+  $scope.getMyCtrlScope = function() {
+         return $scope;   
+    }
+
+    $scope.save = function() {//save to exel
+      $scope.ep=new ExcelPlus();
+        $scope.ep.openRemote("list.xlsx", function(passed) {
+      if (!passed) alert("Error: impossible to load the remote file");
+      else   {
+        $scope.ep.writeNextRow([document.getElementById("ProduitInput").value, "75001", "France"]).Save("test.xlsx");
+      }
+    });
+    }
+    
+  
+});
+/*
+  $scope.deleteTask = function (task) {
+    if(confirm("Are you sure to delete this line?")){
+    $http.post("ajax/deleteTask.php?taskID="+task).success(function(data){
+        getTask();
+      });
+    }
+  };
+
+  $scope.toggleStatus = function(item, status, task) {
+    if(status=='2'){status='0';}else{status='2';}
+      $http.post("ajax/updateTask.php?taskID="+item+"&status="+status).success(function(data){
+        getTask();
+      });
+  };
+    $scope.jsonn = function() {
+      $scope.master = angular.copy($scope.p);
+        $scope.p=null
+    };
+    $scope.jsonn();
+  function Choose(val){
+    console.log(val.className);
+    if(val.className=="Produit ng-binding ng-scope"){elem = document.getElementById("ProduitInput");}
+    if(val.className=="Marque ng-binding ng-scope"){elem = document.getElementById("MarqueInput");} 
+    if(val.className=="Info ng-binding ng-scope"){elem = document.getElementById("InfoInput");} 
+    if(val.className=="Provider ng-binding ng-scope"){elem = document.getElementById("ProviderInput");} 
+      elem.value = (val.id);
+  }*/
+/*var dataObj = {
+        name : $scope.nameInput,
+        brand : $scope.brandInput,
+        info : $scope.infoInput,
+        price : $scope.priceInput,
+        quantity : $scope.quantityInput,
+        provider : $scope.providerInput
+    };  
+    var res = $http.post('add.php', dataObj);
+    res.success(function(data, status, headers, config) {
+      alert("add new row OK");//$scope.message = data;
+          $scope.content = data;
+          $scope.statuscode = status;
+        $scope.statustext = headers;            
+    });
+    res.error(function(data, status, headers, config) {
+      alert( "failure message: " + JSON.stringify({data: data}));
+    }); 
+      //alert($scope.ProduitInput+"");
+      //$http.post("add.php?produit="+$scope.ProduitInput+"&marque="+$scope.MarqueInput+"&info="+$scope.InfoInput+"&price="+$scope.PriceInput+"&quantite="+$scope.QuantityInput+"&provider="+$scope.ProviderInput).success(function(data){
+        //getTask();*/
+    //});
+        // Posting data to php file
+
+  
+</script>
+
+</body>
+</html>

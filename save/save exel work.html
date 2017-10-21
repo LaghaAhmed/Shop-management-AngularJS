@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script type="text/javascript" src="../js/exel/sheetjs.all.min.js"></script>
+<script type="text/javascript" src="../js/exel/ExcelPlus-2.4.min.js"></script>
+<style type="text/css">
+	.inpText{vertical-align:top;}
+</style>
+<body>
+
+<div ng-app="myApp" ng-controller="myCtrl">
+<table>
+<tr><td>Produit</td><td>Marque</td><td>Info</td><td>Prix</td><td>Qantity</td><td>Fournisseur</td></tr>
+<tr>
+<td class="inpText">
+	<input type="text" ng-model="ProduitInput" id="ProduitInput">
+	<ul>
+	  <li ng-repeat="x in Products | filter:ProduitInput" class="Produit" id="{{x.produit}}" onclick="Choose(this)" >
+	    {{ x.produit }}
+	  </li>
+	</ul>
+</td>
+<td class="inpText">
+	<input type="text" ng-model="MarqueInput" id="MarqueInput">
+	<ul>
+	  <li ng-repeat="x in Products | filter:MarqueInput" class="Marque" id="{{x.marque}}" onclick="Choose(this)" >
+	    {{ x.marque }}
+	  </li>
+	</ul>
+</td>
+<td class="inpText">
+	<input type="text" ng-model="InfoInput" id="InfoInput">
+	<ul>
+	  <li ng-repeat="x in Products | filter:InfoInput" class="Info" id="{{x.info}}" onclick="Choose(this)" >
+	    {{ x.info }}
+	  </li>
+	</ul>
+</td>
+<td class="inpText">
+	<input type="number" ng-model="PriceInput" id="PriceInput">
+</td>
+<td class="inpText">
+	<input type="number" ng-model="QuantityInput" id="QuantityInput">
+</td>
+<td class="inpText"s>
+	<input type="text" ng-model="ProviderInput" id="ProviderInput">
+	<ul>
+	  <li ng-repeat="x in Products | filter:ProviderInput" class="Provider" id="{{x.fournisseur}}" onclick="Choose(this)" >
+	    {{ x.fournisseur }}
+	  </li>
+	</ul>
+</td>
+</tr>
+</table>
+<input type="button" value="Save" name="save" ng-click="save()">
+<input type="submit" value="refreshJson" name="refreshJson" ng-click="refreshJson()">
+<input type="submit" value="loadDoc" name="loadDoc" onclick="saveExcel()">
+<div id="demo"></div>
+</div>
+
+<script>
+
+var app = angular.module('myApp', []);
+app.controller('myCtrl', function($scope, $http) {
+    $http.get("../ajax/data.php").then(function (response) {$scope.Products = response.data.records;});
+
+
+
+    
+    
+    $scope.save = function() {
+    	$scope.ep=new ExcelPlus();
+        $scope.ep.openRemote("list.xlsx", function(passed) {
+		  if (!passed) alert("Error: impossible to load the remote file");
+		  else   {
+		    $scope.ep.writeNextRow([document.getElementById("ProduitInput").value, "75001", "France"]).Save("test.xlsx");
+		    //$scope.data = $scope.ep.selectSheet(1).readAll();
+		    //console.table($scope.data);// show the content of the first sheet
+		    //alert("done");
+		  }
+		});
+    }
+	/*
+	function saveExcel() {
+
+		  var excel = new ActiveXObject("Excel.Application");  
+		  excel.Visible = false;
+		  var fso = new ActiveXObject("Scripting.FileSystemObject");
+
+
+		  var path = "C:\\wamp64\\www\\gestion\\Projet\\TEST2.XLSX";
+		  var excel_file = excel.Workbooks.Open(path); 
+		  var excel_sheet = excel_file.Worksheets(1); 
+
+		  //Editing all cells from Row 6 to 10 and Column 1 to 5
+		  for (var row = 6; row <=10; row++) {
+		    for (var col = 1; col <=5 ; col++) {
+		        excel_sheet.Cells(row,col).Value = "Setting New Cell Data"; 
+		      };
+		  };
+		  //Save Excel    
+		  excel.ActiveWorkbook.Save();
+
+		  alert("Excel Saved!");
+		  //showing excel are editing is done.
+		  excel.Visible = true;
+		  excel = null;
+		  excel_file = null;
+
+	};
+
+	$scope.refreshJson = function(){
+		$scope.Products=[];
+		$scope.ep=new ExcelPlus();
+		// we call openRemote()
+		$scope.ep.openRemote("list.xlsx", function(passed) {
+			if (!passed) alert("Error: impossible to load the remote file");
+			else   {
+			    $scope.data = $scope.ep.selectSheet(1).readAll();
+			    //console.table($scope.data);
+			    //console.log(data[2][7]);
+			    
+				  	for(var i = 1; i < $scope.data.length; ++i) 
+				  	{
+				  //		 console.log($scope.data[i][0]);
+				  		//if ($scope.Products != "") {$scope.Products += ",";}
+					    $scope.Products.push({id : $scope.data[i][0], qrcode : $scope.data[i][1], produit : $scope.data[i][2], info : $scope.data[i][3], marque : $scope.data[i][4], prix : $scope.data[i][5], quantity : $scope.data[i][6], founisseur : $scope.data[i][7]});
+					}					
+			     //console.table($scope.Prods);
+			     //alert($scope.Prods.length);
+			     //return $scope.Prods;
+
+			}
+		});
+
+	}
+
+	//$scope.Products = [];
+	//$scope.Products = $scope.refreshJson();
+	//alert($scope.refreshJson().length+"");
+
+function support() {
+
+		        var ExcelApp = new ActiveXObject("Excel.Application");
+				var ExcelSheet = new ActiveXObject("Excel.Sheet");
+				// Make Excel visible through the Application object.
+				ExcelSheet.Application.Visible = true;
+
+
+		// Place some text in the first cell of the sheet.
+		ExcelSheet.ActiveSheet.Cells(2,3).Value = "This is column a, row11";
+		// Save the sheet.
+		ExcelSheet.SaveAs("C:\\wamp64\\www\\gestion\\Projet\\TEST2.XLSX");
+		// Close Excel with the Quit method on the Application object.
+		ExcelSheet.Application.Quit();
+	}
+	*/
+});
+
+	
+
+	
+
+	function Choose(val){
+		console.log(val.className);
+		if(val.className=="Produit ng-binding ng-scope"){elem = document.getElementById("ProduitInput");}
+		if(val.className=="Marque ng-binding ng-scope"){elem = document.getElementById("MarqueInput");}	
+		if(val.className=="Info ng-binding ng-scope"){elem = document.getElementById("InfoInput");}	
+		if(val.className=="Provider ng-binding ng-scope"){elem = document.getElementById("ProviderInput");}	
+   		elem.value = (val.id);
+   		/*var fileSystem=new ActiveXObject("Scripting.FileSystemObject");
+					var monfichier=fileSystem.OpenTextFile("data.txt", 2 ,true);
+					monfichier.WriteLine("aaaaaaaaaaaaa");
+					monFichier.Close();*/
+	}
+	
+</script>
+
+</body>
+</html>
